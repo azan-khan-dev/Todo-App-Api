@@ -1,15 +1,21 @@
+import express from "express";
 import { config } from "dotenv";
 config();
-import express from "express";
 
 import { testConnection } from "./config/db_connect.js";
-
-
+import authRoutes from "./routes/auth_route/auth.routes.js";
 
 const app = express();
+
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+
 
 const PORT = process.env.PORT || 3000;
+
+// routes
+app.use("/api/auth", authRoutes);
 
 app.get("/", (req, res) => {
   res.send("Server started");
