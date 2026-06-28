@@ -1,11 +1,12 @@
 import bcrypt from "bcrypt"
 import  jwt from "jsonwebtoken"
 import asyncHandler from "../../utils/asynchandler.js"
-import { registerSchema } from "../../validators/auth.validator.js"
+import { loginSchema, registerSchema } from "../../validators/auth.validator.js"
 import ApiError from "../../utils/ApiError.js"
-import { create_user, FindUserByEmail } from "../../models/user/user.model.js"
-import generateToken from "../../utils/generateToken.js"
+import { create_user, FindUserByEmail, UpdateRefreshToken } from "../../models/user/user.model.js"
 import ApiResponse from "../../utils/ApiResponse.js"
+import generateAccesstoken from "../../utils/GenerateAccessToken.js"
+import generateRefreshToken from "../../utils/GenerateRefreshToken.js"
 
 const register=asyncHandler(async(req,res)=>{
 
@@ -24,18 +25,74 @@ const register=asyncHandler(async(req,res)=>{
 
     const hashedPassword=await bcrypt.hash(password,10);
     const user=await create_user(name,email,hashedPassword);
-    const token=generateToken(user)
 
     return res.status(201).json(
         new ApiResponse(
             201,
             {
                 user,
-                token,
+                
             },
-            "User registered successfully"
+            "User registered successfully.Please Login to continue"
         )
     );
 
 })
-export default register;
+
+const login=asyncHandler(async(req,res)=>{
+    const {error}=loginSchema.validate(req.body);
+
+    if(error){
+        throw new ApiError(404,error.details[0].message)
+    }
+    const {email,password}=req.body;
+
+
+    if(!user)
+    {
+        throw new ApiError(404,"User not found");
+    }
+
+    const isPasswordCorrect=await bcrypt.compare(password,user.password);
+
+    if(!isPasswordCorrect)
+    {
+        throw new ApiError(401,"Invalid email or password");
+    }
+
+    const accessToken=generateAccesstoken(user)
+    const refreshToken=generateRefreshToken(user)
+    await UpdateRefreshToken(user.id,refreshToken)
+
+
+    const options={
+        httpOnly:true,
+        secure:false,
+        sameSite:"lax"
+    }
+
+    res.cookie("accessToken",accessToken,options)
+    res.cookie("refreshToken",refreshToken,options);
+
+    return res.status(200).json(
+        new ApiResponse(
+            200,
+            {
+                user:{
+                    id:user.id,
+                    name:user.name,
+                    email:user.email,
+                },
+                accessToken,
+                refreshToken
+            },
+            "Login Success"
+        )
+    )
+})
+export 
+ 
+    {
+    register,
+     login
+    };
