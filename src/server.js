@@ -1,5 +1,6 @@
 import express from "express";
 import cookieParser from "cookie-parser";
+import { setupSwagger } from "./config/swagger.js";
 import { config } from "dotenv";
 config();
 
@@ -21,6 +22,8 @@ const PORT = process.env.PORT || 3000;
 // routes
 app.use("/api/auth", authRoutes);
 app.use("/api/v1/todos",todoRoutes)
+
+setupSwagger(app);
 
 app.get("/", (req, res) => {
   res.send("Server started");
