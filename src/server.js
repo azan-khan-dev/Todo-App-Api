@@ -5,6 +5,7 @@ config();
 
 import { testConnection } from "./config/db_connect.js";
 import authRoutes from "./routes/auth_route/auth.routes.js";
+import todoRoutes from "./routes/todo_route/todo.route.js"
 
 
 const app = express();
@@ -19,6 +20,7 @@ const PORT = process.env.PORT || 3000;
 
 // routes
 app.use("/api/auth", authRoutes);
+app.use("/api/v1/todos",todoRoutes)
 
 app.get("/", (req, res) => {
   res.send("Server started");

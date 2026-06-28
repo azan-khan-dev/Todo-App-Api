@@ -1,6 +1,6 @@
 import asyncHandler from "../../utils/asynchandler.js";
-import ApiError from "../../utils/ApiError.js";
 import ApiResponse from "../../utils/ApiResponse.js";
+import ApiError from "../../utils/ApiError.js";
 
 import {
   createTodo,
@@ -9,7 +9,8 @@ import {
   UpdateTodo,
   toggleTodoStatus,
   deleteTodo,
-} from "../../models/todo/todo.model.js";
+  findDuplicateTodo,
+} from "../../models/todos/todo.model.js"
 
 import {
   createTodoSchema,
@@ -17,7 +18,7 @@ import {
 } from "../../validators/todo.validator.js";
 
 
- const createTodoController = asyncHandler(async (req, res) => {
+const createTodoController = asyncHandler(async (req, res) => {
   const { error } = createTodoSchema.validate(req.body);
 
   if (error) {
@@ -25,6 +26,13 @@ import {
   }
 
   const { title, description, priority, dueDate } = req.body;
+
+  // 👇 Title + Description dono check honge
+  const existingTodo = await findDuplicateTodo(req.user.id, title, description);
+
+  if (existingTodo) {
+    throw new ApiError(409, "A todo with the same title and description already exists");
+  }
 
   const todo = await createTodo(
     req.user.id,
@@ -38,6 +46,8 @@ import {
     new ApiResponse(201, todo, "Todo created successfully")
   );
 });
+
+
 
 
 // =====================================
@@ -81,7 +91,20 @@ import {
   }
 
   const { id } = req.params;
-  const { title, description, priority, dueDate, isCompleted } = req.body;
+
+  // Pehle existing todo nikalo
+  const existingTodo = await getTodoById(id, req.user.id);
+
+  if (!existingTodo) {
+    throw new ApiError(404, "Todo not found");
+  }
+
+  // Jo field request mein aayi wo use karo, jo nahi aayi uski purani value rakho
+  const title = req.body.title ?? existingTodo.title;
+  const description = req.body.description ?? existingTodo.description;
+  const priority = req.body.priority ?? existingTodo.priority;
+  const dueDate = req.body.dueDate ?? existingTodo.due_date;
+  const IsCompleted = req.body.IsCompleted ?? existingTodo.is_completed;
 
   const updatedTodo = await UpdateTodo(
     id,
@@ -90,7 +113,7 @@ import {
     description,
     priority,
     dueDate,
-    isCompleted
+    IsCompleted,
   );
 
   if (!updatedTodo) {

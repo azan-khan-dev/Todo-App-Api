@@ -71,7 +71,7 @@ const updateTodoSchema = Joi.object({
       'date.base': 'Due date must be a valid date',
     }),
 
-  isCompleted: Joi.boolean()
+  IsCompleted: Joi.boolean()
     .messages({
       'boolean.base': 'isCompleted must be true or false',
     }),

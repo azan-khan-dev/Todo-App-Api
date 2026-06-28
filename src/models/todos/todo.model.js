@@ -1,4 +1,4 @@
-import getPool from "../../config/db_connect";
+import getPool from "../../config/db_connect.js";
 
 async function createTodo(userId, title, description, priority, dueDate) {
   const pool = getPool();
@@ -26,12 +26,24 @@ async function getTodosByUserId(userId) {
   const query = `
     SELECT * FROM todos
     WHERE user_id = $1
-    ORDER BY created_at DESC
+    ORDER BY id ASC;
   `;
 
   const result = await pool.query(query, [userId]);
 
   return result.rows;
+}
+
+// CHECK IF TODO WITH SAME TITLE AND DESCRIPTION EXISTS FOR USER
+async function findDuplicateTodo(userId, title, description) {
+  const pool = getPool();
+  const query = `
+    SELECT * FROM todos WHERE user_id = $1 AND title = $2 AND description = $3
+  `;
+
+  const result = await pool.query(query, [userId, title, description]);
+
+  return result.rows[0];
 }
 
 //UPDATE A TODO
@@ -42,7 +54,7 @@ async function UpdateTodo(
   description,
   priority,
   dueDate,
-  IsComplete,
+  IsCompleted,
 ) {
   const pool = getPool();
   const query = `UPDATE todos SET title=$1,description=$2,priority=$3,due_date=$4,is_completed=$5,updated_at=NOW()
@@ -54,7 +66,7 @@ async function UpdateTodo(
     description,
     priority,
     dueDate,
-    isCompleted,
+    IsCompleted,
     id,
     userId,
   ]);
@@ -108,6 +120,7 @@ export {
   getTodoById,
   UpdateTodo,
   toggleTodoStatus,
-  deleteTodo
+  deleteTodo,
+  findDuplicateTodo
   
 };
