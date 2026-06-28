@@ -46,7 +46,8 @@ const login=asyncHandler(async(req,res)=>{
         throw new ApiError(404,error.details[0].message)
     }
     const {email,password}=req.body;
-
+    
+const user =await FindUserByEmail(email)
 
     if(!user)
     {
