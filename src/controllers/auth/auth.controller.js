@@ -3,7 +3,7 @@ import  jwt from "jsonwebtoken"
 import asyncHandler from "../../utils/asynchandler.js"
 import { loginSchema, registerSchema } from "../../validators/auth.validator.js"
 import ApiError from "../../utils/ApiError.js"
-import { create_user, FindUserByEmail, UpdateRefreshToken } from "../../models/user/user.model.js"
+import { create_user, FindUserByEmail, RemoveRefreshToken, UpdateRefreshToken } from "../../models/user/user.model.js"
 import ApiResponse from "../../utils/ApiResponse.js"
 import generateAccesstoken from "../../utils/GenerateAccessToken.js"
 import generateRefreshToken from "../../utils/GenerateRefreshToken.js"
@@ -91,9 +91,35 @@ const user =await FindUserByEmail(email)
         )
     )
 })
+
+
+
+const logout = asyncHandler(async (req, res) => {
+  // req.user auth middleware se aayega
+  await RemoveRefreshToken(req.user.id);
+
+  const options = {
+    httpOnly: true,
+    secure: false,
+    sameSite: "lax",
+  };
+
+  res.clearCookie("accessToken", options);
+  res.clearCookie("refreshToken", options);
+
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      null,
+      "Logout successful"
+    )
+  );
+});
+
 export 
  
     {
     register,
-     login
+     login,
+     logout
     };

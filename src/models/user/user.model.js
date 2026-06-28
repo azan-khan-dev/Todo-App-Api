@@ -23,6 +23,23 @@ async function UpdateRefreshToken(userId, refreshToken) {
   return result.rows[0];
 }
 
+async function RemoveRefreshToken(userId) {
+  const pool = getPool();
+
+  const result = await pool.query(
+    `
+    UPDATE users
+    SET refresh_token = NULL
+    WHERE id = $1
+    RETURNING id
+    `,
+    [userId]
+  );
+
+  return result.rows[0];
+}
+
+
 async function FindUserByRefreshToken(refreshToken) {
   const pool = getPool();
 
@@ -53,4 +70,4 @@ async function FindUserById(id) {
 
   return result.rows[0];
 }
-export { create_user, FindUserByEmail, FindUserById, UpdateRefreshToken,FindUserByRefreshToken };
+export { create_user, FindUserByEmail, FindUserById, UpdateRefreshToken,FindUserByRefreshToken, RemoveRefreshToken };

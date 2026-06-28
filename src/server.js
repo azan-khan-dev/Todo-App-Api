@@ -1,14 +1,17 @@
 import express from "express";
+import cookieParser from "cookie-parser";
 import { config } from "dotenv";
 config();
 
 import { testConnection } from "./config/db_connect.js";
 import authRoutes from "./routes/auth_route/auth.routes.js";
 
+
 const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser())
 
 
 
